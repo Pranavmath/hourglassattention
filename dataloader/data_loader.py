@@ -71,7 +71,9 @@ class CreateDataset(data.Dataset):
                                                  transforms.Resize(self.opt.fineSize),
                                                  transforms.ToTensor()
                                                  ])
-            mask = (mask_transform(mask_pil) == 0).float()
+
+            # Directly dotted with image in model forward so that means 0 is part of image being removed and that matches NoduleGen dataset so no need for == 0
+            mask = (mask_transform(mask_pil)).float()
             mask_pil.close()
             return mask
 
