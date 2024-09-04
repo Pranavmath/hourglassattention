@@ -12,9 +12,9 @@ class BaseOptions():
 
     def initialize(self, parser):
         # base define
-        parser.add_argument('--name', type=str, default='paris_newR', help='name of the experiment.')
+        parser.add_argument('--name', type=str, default='nodule_gen', help='name of the experiment.')
         parser.add_argument('--model', type=str, default='han', help='name of the model type. [pluralistic]')
-        parser.add_argument('--mask_type', type=int, default=[2,4],
+        parser.add_argument('--mask_type', type=int, default=[3],
                             help='mask type, 0: center mask, 1:random regular mask, '
                             '2: random irregular mask from pic cvpr 2019, 3: external irregular mask. 4: random irregular mask from gc iccv2019 [0],[1,2],[2,4]')
         parser.add_argument('--checkpoints_dir', type=str, default='./checkpoints', help='models are save here')
