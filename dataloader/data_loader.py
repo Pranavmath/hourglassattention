@@ -61,28 +61,17 @@ class CreateDataset(data.Dataset):
 
         # external mask from "Image Inpainting for Irregular Holes Using Partial Convolutions (ECCV18)"
         if mask_type == 3:
-            if self.opt.isTrain:
-                mask_index = random.randint(0, self.mask_size-1)
-            else:
-                mask_index = index
+            mask_index = index
             mask_pil = Image.open(self.mask_paths[mask_index]).convert('L')
             size = mask_pil.size[0]
             if size > mask_pil.size[1]:
                 size = mask_pil.size[1]
-            if self.opt.isTrain:
-                mask_transform = transforms.Compose([transforms.RandomHorizontalFlip(),
-                                                     transforms.RandomRotation(10),
-                                                     transforms.CenterCrop([size, size]),
-                                                     transforms.Resize(self.opt.fineSize),
-                                                     transforms.ToTensor()
-                                                     ])
-                mask = mask_transform(mask_pil)
-            else:
-                mask_transform = transforms.Compose([
-                                                     transforms.Resize(self.opt.fineSize),
-                                                     transforms.ToTensor()
-                                                     ])
-                mask = (mask_transform(mask_pil) == 0).float()
+            
+            mask_transform = transforms.Compose([
+                                                 transforms.Resize(self.opt.fineSize),
+                                                 transforms.ToTensor()
+                                                 ])
+            mask = (mask_transform(mask_pil) == 0).float()
             mask_pil.close()
             return mask
 
@@ -99,20 +88,8 @@ def get_transform(opt):
     transform_list = []
     osize = [opt.loadSize[0], opt.loadSize[1]]
     fsize = [opt.fineSize[0], opt.fineSize[1]]
-    if opt.isTrain:
-        if opt.resize_or_crop == 'resize_and_crop':
-            transform_list.append(transforms.Resize(osize))
-            transform_list.append(transforms.RandomCrop(fsize))
-        elif opt.resize_or_crop == 'crop':
-            transform_list.append(transforms.RandomCrop(fsize))
-        if not opt.no_augment:
-            transform_list.append(transforms.ColorJitter(0.0, 0.0, 0.0, 0.0))
-        if not opt.no_flip:
-            transform_list.append(transforms.RandomHorizontalFlip())
-        if not opt.no_rotation:
-            transform_list.append(transforms.RandomRotation(3))
-    else:
-        transform_list.append(transforms.Resize(fsize))
+    
+    transform_list.append(transforms.Resize(fsize))
 
     transform_list += [transforms.ToTensor()]
 
