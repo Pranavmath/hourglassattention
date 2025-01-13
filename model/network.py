@@ -11,7 +11,7 @@ def define_g(init_type='normal', gpu_ids=[]):
 
 
 def define_d(init_type= 'normal', gpu_ids=[]):
-    net = Discriminator(in_channels=3)
+    net = Discriminator(in_channels=1)
     return init_net(net, init_type, gpu_ids)
 
 
@@ -95,7 +95,8 @@ class Discriminator(nn.Module):
 class Encoder(nn.Module):
     def __init__(self, ngf=64):
         super().__init__()
-        self.encoder1 = ResBlock0(in_ch=4, out_ch=ngf, kernel_size=5, stride=1, padding=2)
+        # changed
+        self.encoder1 = ResBlock0(in_ch=2, out_ch=ngf, kernel_size=5, stride=1, padding=2)
         self.encoder2 = ResBlock(in_ch=ngf, out_ch=ngf*2, kernel_size=3, stride=2, padding=1)
 
         self.encoder22 = ResBlock(in_ch=ngf*2, out_ch=ngf*2, kernel_size=3, stride=1, padding=1)
@@ -120,9 +121,10 @@ class Decoder(nn.Module):
         self.decoder12 =ResBlock(in_ch=ngf*2, out_ch=ngf*2, kernel_size=3, stride=1, padding=1)
         self.decoder2 = ResBlock(in_ch=ngf*2, out_ch=ngf, kernel_size=3, stride=1, padding=1)
         self.decoder22 = ResBlock(in_ch=ngf, out_ch=ngf, kernel_size=3, stride=1, padding=1)
+        # changed
         self.decoder3 = nn.Sequential(
             nn.ReflectionPad2d(3),
-            nn.Conv2d(in_channels=ngf, out_channels=3, kernel_size=7, padding=0),
+            nn.Conv2d(in_channels=ngf, out_channels=1, kernel_size=7, padding=0),
             nn.Tanh()
         )
 
