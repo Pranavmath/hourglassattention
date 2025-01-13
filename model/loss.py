@@ -4,6 +4,14 @@ import torchvision.models as models
 from functools import reduce
 from torch.nn import functional as F
 
+def expand(x, y):
+  if x.shape[1] == 1 and y.shape[1] == 1:
+    x = x.repeat(1, 3, 1, 1)
+    y = y.repeat(1, 3, 1, 1)
+
+  return x, y
+
+
 
 float_tensor = torch.cuda.FloatTensor if torch.cuda.is_available() else torch.FloatTensor
 class AdversarialLoss(nn.Module):
@@ -67,6 +75,8 @@ class StyleLoss(nn.Module):
         return G
 
     def __call__(self, x, y):
+        x, y = expand(x, y)
+        
         # Compute features
         x_vgg, y_vgg = self.vgg(x), self.vgg(y)
 
@@ -95,6 +105,8 @@ class PerceptualLoss(nn.Module):
         self.weights = weights
 
     def __call__(self, x, y):
+        x, y = expand(x, y)
+
         # Compute features
         x_vgg, y_vgg = self.vgg(x), self.vgg(y)
 
