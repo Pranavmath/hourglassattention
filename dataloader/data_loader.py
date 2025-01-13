@@ -5,24 +5,42 @@ from .image_folder import make_dataset
 from util import task
 import random
 import math
-
+import os
 
 class CreateDataset(data.Dataset):
     def __init__(self, opt):
         self.opt = opt
-        self.img_paths, self.img_size = make_dataset(opt.img_file)
-        # provides random file for training and testing
-        if opt.mask_file != 'none':
-            self.mask_paths, self.mask_size = make_dataset(opt.mask_file)
-            if not self.opt.isTrain:
-                self.mask_paths = self.mask_paths * (max(1, math.ceil(self.img_size / self.mask_size)))
+        #self.img_paths, self.img_size = make_dataset(opt.img_file)
+
+        path = self.opt.img_file
+
+        self.mask_path = os.path.join(path, "masks")
+        self.normal_path = os.path.join(path, "normal")
+
+        self._all_fnames = os.listdir(self.normal_path)
+
+
+        self.mask_paths = [os.path.join(self.mask_path, nodule_path) for nodule_path in os.listdir(self.mask_path)]
+        self.normal_paths = [os.path.join(self.normal_path, nodule_path) for nodule_path in os.listdir(self.normal_path)]
+
         self.transform = get_transform(opt)
 
+        self.img_size = len(self.normal_paths)
+
+        #print(self.opt.fineSize)
+
+        self.mask_transform = transforms.Compose([
+          transforms.Resize(self.opt.fineSize),
+          transforms.ToTensor()
+        ])
+
+
+
     def __getitem__(self, index):
-        # load image
-        img, img_path = self.load_img(index)
-        # load mask
-        mask = self.load_mask(img, index)
+        img_path = self.normal_paths[index]
+        img = self.transform(Image.open(img_path).convert("L"))
+        mask = self.mask_transform(Image.open(random.choice(self.mask_paths)).convert("L"))
+
         return {'img': img, 'img_path': img_path, 'mask': mask}
 
     def __len__(self):
@@ -31,6 +49,7 @@ class CreateDataset(data.Dataset):
     def name(self):
         return "inpainting dataset"
 
+    """
     def load_img(self, index):
         ImageFile.LOAD_TRUNCATED_IMAGES = True
         img_path = self.img_paths[index % self.img_size]
@@ -40,7 +59,7 @@ class CreateDataset(data.Dataset):
         return img, img_path
 
     def load_mask(self, img, index):
-        """Load different mask types for training and testing"""
+        #Load different mask types for training and testing
         mask_type_index = random.randint(0, len(self.opt.mask_type) - 1)
         mask_type = self.opt.mask_type[mask_type_index]
 
@@ -67,15 +86,14 @@ class CreateDataset(data.Dataset):
             if size > mask_pil.size[1]:
                 size = mask_pil.size[1]
             
-            mask_transform = transforms.Compose([
-                                                 transforms.Resize(self.opt.fineSize),
-                                                 transforms.ToTensor()
-                                                 ])
+            
 
             # Directly dotted with image in model forward so that means 0 is part of image being removed and that matches NoduleGen dataset so no need for == 0
             mask = (mask_transform(mask_pil)).float()
             mask_pil.close()
             return mask
+    
+    """
 
 
 def dataloader(opt):
@@ -92,6 +110,7 @@ def get_transform(opt):
     fsize = [opt.fineSize[0], opt.fineSize[1]]
     
     transform_list.append(transforms.Resize(fsize))
+    transform_list.append(transforms.Grayscale())
 
     transform_list += [transforms.ToTensor()]
 
