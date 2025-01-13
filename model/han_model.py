@@ -114,6 +114,7 @@ class Han(BaseModel):
         # calculate l1 loss
         totalG_loss = 0
         self.loss_app_g = self.L1loss(self.img_truth, self.img_g) * self.opt.lambda_l1
+        
         self.loss_per = self.per(self.img_g, self.img_truth) * self.opt.lambda_per
         self.loss_sty = self.sty(self.img_truth * (1 - self.mask), self.img_g * (1 - self.mask)) * self.opt.lambda_sty
 
